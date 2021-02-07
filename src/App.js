@@ -8,7 +8,11 @@ class Discography extends Component {
   constructor(props) {
     super(props);
 
-    this.state = { data: [] };
+    this.state = { data: [], filter: null };
+
+    this.handleSubmit = this.handleSubmit.bind(this);
+    this.handleChange = this.handleChange.bind(this);
+
   }
 
   componentDidMount(){
@@ -27,16 +31,49 @@ class Discography extends Component {
     })
   }
 
-  render() {
-    const { data } = this.state;
+  handleChange(event) {
+    const filter = event.target.value;
+    this.setState({filter: filter});
+  }
 
+  handleSubmit(event){
+    event.preventDefault();
+    const formData = new FormData(event.target);
+
+    const data = Object.fromEntries(formData);
+
+    this.setState({filter: data.q})
+   // console.log('Submit',data);
+  }
+
+  applyFilter(data, filter) {
+    if(!filter) return data;
+    const lowerFilter = filter.toLowerCase();
+
+    return data.filter(item => {
+      const lowerTitle = item.title.toLowerCase();
+      return lowerTitle.indexOf(lowerFilter) !== -1;
+    });
+  }
+
+  render() {
+    const { data, filter } = this.state;
+    
     if(!data || !data.length) return (<h2>Loading...</h2>);
+
+    const filteredData = this.applyFilter(data, filter);
 
     return (
       <div>
         <h2>Discography</h2>
+        <div className="search">
+          <form onSubmit={this.handleSubmit}>
+            <input type="text" name="q" className="input" autoComplete="off" onChange={this.handleChange}/>
+            <input type="submit" className="btn" value="Search"/>
+          </form>
+        </div>
         <div className="discography">        
-        {data.map(album => <Album key={album.title} item={album}/>)}
+        {filteredData.map(album => <Album key={album.title} item={album}/>)}
       </div>
       </div>    
     );    
